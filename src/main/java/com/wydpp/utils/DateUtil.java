@@ -54,4 +54,9 @@ public class DateUtil {
 		}
 		return 0;
 	}
+
+    public static String getDateStr(){
+        SimpleDateFormat oldsdf = new SimpleDateFormat(yyyy_MM_dd_HH_mm_ss, Locale.getDefault());
+        return oldsdf.format(new Date());
+    }
 }

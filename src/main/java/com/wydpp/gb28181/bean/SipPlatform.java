@@ -1,6 +1,6 @@
 package com.wydpp.gb28181.bean;
 
-public class ParentPlatform {
+public class SipPlatform {
 
     /**
      * id
@@ -70,7 +70,7 @@ public class ParentPlatform {
     /**
      * 心跳周期(秒)
      */
-    private String keepTimeout;
+    private Integer keepTimeout;
 
     /**
      * 传输协议
@@ -87,12 +87,6 @@ public class ParentPlatform {
      * 允许云台控制
      */
     private boolean ptz;
-
-    /**
-     * RTCP流保活
-     * TODO 预留, 暂不实现
-     */
-    private boolean rtcp;
 
     /**
      * 在线状态
@@ -208,11 +202,11 @@ public class ParentPlatform {
         this.expires = expires;
     }
 
-    public String getKeepTimeout() {
+    public Integer getKeepTimeout() {
         return keepTimeout;
     }
 
-    public void setKeepTimeout(String keepTimeout) {
+    public void setKeepTimeout(Integer keepTimeout) {
         this.keepTimeout = keepTimeout;
     }
 
@@ -238,14 +232,6 @@ public class ParentPlatform {
 
     public void setPtz(boolean ptz) {
         this.ptz = ptz;
-    }
-
-    public boolean isRtcp() {
-        return rtcp;
-    }
-
-    public void setRtcp(boolean rtcp) {
-        this.rtcp = rtcp;
     }
 
     public boolean isStatus() {

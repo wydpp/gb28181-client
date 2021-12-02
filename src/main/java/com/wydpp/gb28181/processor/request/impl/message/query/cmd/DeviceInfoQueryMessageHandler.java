@@ -1,7 +1,7 @@
 package com.wydpp.gb28181.processor.request.impl.message.query.cmd;
 
-import com.wydpp.gb28181.bean.Device;
-import com.wydpp.gb28181.bean.ParentPlatform;
+import com.wydpp.gb28181.bean.SipDevice;
+import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
 import com.wydpp.gb28181.processor.request.impl.message.IMessageHandler;
 import com.wydpp.gb28181.processor.request.impl.message.query.QueryMessageHandler;
@@ -34,12 +34,12 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
+    public void handForDevice(RequestEvent evt, SipDevice sipDevice, Element rootElement) {
 
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element rootElement) {
         logger.info("接收到DeviceInfo查询消息");
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {

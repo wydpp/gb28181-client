@@ -1,7 +1,7 @@
 package com.wydpp.gb28181.processor.request.impl.message;
 
-import com.wydpp.gb28181.bean.Device;
-import com.wydpp.gb28181.bean.ParentPlatform;
+import com.wydpp.gb28181.bean.SipDevice;
+import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.processor.SIPProcessorObserver;
 import com.wydpp.gb28181.processor.request.ISIPRequestProcessor;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
@@ -49,13 +49,13 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         // 查询设备是否存在
-        Device device = null;
+        SipDevice sipDevice = null;
                 //storage.queryVideoDevice(deviceId);
         // 查询上级平台是否存在
-        ParentPlatform parentPlatform = null;
+        SipPlatform sipPlatform = null;
                 //storage.queryParentPlatByServerGBId(deviceId);
         try {
-            if (device == null && parentPlatform == null) {
+            if (sipDevice == null && sipPlatform == null) {
                 // 不存在则回复404
                 responseAck(evt, Response.NOT_FOUND, "device id not found");
             }else {
@@ -63,10 +63,10 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 String name = rootElement.getName();
                 IMessageHandler messageHandler = messageHandlerMap.get(name);
                 if (messageHandler != null) {
-                    if (device != null) {
-                        messageHandler.handForDevice(evt, device, rootElement);
+                    if (sipDevice != null) {
+                        messageHandler.handForDevice(evt, sipDevice, rootElement);
                     }else { // 由于上面已经判断都为null则直接返回，所以这里device和parentPlatform必有一个不为null
-                        messageHandler.handForPlatform(evt, parentPlatform, rootElement);
+                        messageHandler.handForPlatform(evt, sipPlatform, rootElement);
                     }
                 }else {
                     // 不支持的message

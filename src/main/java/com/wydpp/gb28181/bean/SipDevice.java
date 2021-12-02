@@ -1,7 +1,7 @@
 package com.wydpp.gb28181.bean;
 
 
-public class Device {
+public class SipDevice {
 
 	/**
 	 * 设备Id
@@ -60,19 +60,23 @@ public class Device {
 	/**
 	 * 在线
 	 */
-	private int online;
+	private boolean online;
 
 
 	/**
 	 * 注册时间
 	 */
-	private String registerTime;
+	private Long registerTime;
+
+	private String registerTimeStr;
 
 
 	/**
 	 * 心跳时间
 	 */
-	private String keepaliveTime;
+	private Long keepaliveTime;
+
+	private String keepaLiveTimeStr;
 
 	/**
 	 * 通道个数
@@ -115,6 +119,7 @@ public class Device {
 	private int subscribeCycleForCatalog ;
 
 
+	private boolean needRegister = true;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -196,11 +201,11 @@ public class Device {
 		this.hostAddress = hostAddress;
 	}
 
-	public int getOnline() {
+	public boolean getOnline() {
 		return online;
 	}
 
-	public void setOnline(int online) {
+	public void setOnline(boolean online) {
 		this.online = online;
 	}
 
@@ -212,20 +217,40 @@ public class Device {
 		this.channelCount = channelCount;
 	}
 
-	public String getRegisterTime() {
+	public boolean isOnline() {
+		return online;
+	}
+
+	public Long getRegisterTime() {
 		return registerTime;
 	}
 
-	public void setRegisterTime(String registerTime) {
+	public void setRegisterTime(Long registerTime) {
 		this.registerTime = registerTime;
 	}
 
-	public String getKeepaliveTime() {
+	public String getRegisterTimeStr() {
+		return registerTimeStr;
+	}
+
+	public void setRegisterTimeStr(String registerTimeStr) {
+		this.registerTimeStr = registerTimeStr;
+	}
+
+	public Long getKeepaliveTime() {
 		return keepaliveTime;
 	}
 
-	public void setKeepaliveTime(String keepaliveTime) {
+	public void setKeepaliveTime(Long keepaliveTime) {
 		this.keepaliveTime = keepaliveTime;
+	}
+
+	public String getKeepaLiveTimeStr() {
+		return keepaLiveTimeStr;
+	}
+
+	public void setKeepaLiveTimeStr(String keepaLiveTimeStr) {
+		this.keepaLiveTimeStr = keepaLiveTimeStr;
 	}
 
 	public int getExpires() {
@@ -282,5 +307,13 @@ public class Device {
 
 	public void setSubscribeCycleForCatalog(int subscribeCycleForCatalog) {
 		this.subscribeCycleForCatalog = subscribeCycleForCatalog;
+	}
+
+	public boolean isNeedRegister() {
+		return needRegister;
+	}
+
+	public void setNeedRegister(boolean needRegister) {
+		this.needRegister = needRegister;
 	}
 }

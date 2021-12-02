@@ -1,9 +1,9 @@
 package com.wydpp.gb28181.processor.request.impl.message.response.cmd;
 
 import com.wydpp.config.SipDeviceConfig;
-import com.wydpp.gb28181.bean.Device;
+import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.DeviceChannel;
-import com.wydpp.gb28181.bean.ParentPlatform;
+import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
 import com.wydpp.gb28181.processor.request.impl.message.IMessageHandler;
 import com.wydpp.gb28181.processor.request.impl.message.response.ResponseMessageHandler;
@@ -46,12 +46,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForDevice(RequestEvent evt, Device device, Element element) {
+    public void handForDevice(RequestEvent evt, SipDevice sipDevice, Element element) {
         String key = "";
         //DeferredResultHolder.CALLBACK_CMD_CATALOG + device.getDeviceId();
         Element rootElement = null;
         try {
-            rootElement = getRootElement(evt, device.getCharset());
+            rootElement = getRootElement(evt, sipDevice.getCharset());
             Element deviceListElement = rootElement.element("DeviceList");
             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
             if (deviceListIterator != null) {
@@ -162,7 +162,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element rootElement) {
 
     }
 }

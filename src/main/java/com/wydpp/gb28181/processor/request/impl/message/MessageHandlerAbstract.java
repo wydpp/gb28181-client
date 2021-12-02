@@ -1,7 +1,7 @@
 package com.wydpp.gb28181.processor.request.impl.message;
 
-import com.wydpp.gb28181.bean.Device;
-import com.wydpp.gb28181.bean.ParentPlatform;
+import com.wydpp.gb28181.bean.SipDevice;
+import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
 import org.dom4j.Element;
 
@@ -20,20 +20,20 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
     }
 
     @Override
-    public void handForDevice(RequestEvent evt, Device device, Element element) {
+    public void handForDevice(RequestEvent evt, SipDevice sipDevice, Element element) {
         String cmd = getText(element, "CmdType");
         IMessageHandler messageHandler = messageHandlerMap.get(cmd);
         if (messageHandler != null) {
-            messageHandler.handForDevice(evt, device, element);
+            messageHandler.handForDevice(evt, sipDevice, element);
         }
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element element) {
         String cmd = getText(element, "CmdType");
         IMessageHandler messageHandler = messageHandlerMap.get(cmd);
         if (messageHandler != null) {
-            messageHandler.handForPlatform(evt, parentPlatform, element);
+            messageHandler.handForPlatform(evt, sipPlatform, element);
         }
     }
 }

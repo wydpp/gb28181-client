@@ -1,7 +1,7 @@
 package com.wydpp.gb28181.processor.request.impl.message;
 
-import com.wydpp.gb28181.bean.Device;
-import com.wydpp.gb28181.bean.ParentPlatform;
+import com.wydpp.gb28181.bean.SipDevice;
+import com.wydpp.gb28181.bean.SipPlatform;
 import org.dom4j.Element;
 
 import javax.sip.RequestEvent;
@@ -11,15 +11,15 @@ public interface IMessageHandler {
      * 处理来自设备的信息
      *
      * @param evt
-     * @param device
+     * @param sipDevice
      */
-    void handForDevice(RequestEvent evt, Device device, Element element);
+    void handForDevice(RequestEvent evt, SipDevice sipDevice, Element element);
 
     /**
      * 处理来自平台的信息
      *
      * @param evt
-     * @param parentPlatform
+     * @param sipPlatform
      */
-    void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element);
+    void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element element);
 }

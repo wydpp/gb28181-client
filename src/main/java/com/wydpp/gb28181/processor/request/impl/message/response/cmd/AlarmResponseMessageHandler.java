@@ -1,9 +1,7 @@
 package com.wydpp.gb28181.processor.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson.JSONObject;
-import com.sun.corba.se.impl.protocol.giopmsgheaders.RequestMessage;
-import com.wydpp.gb28181.bean.Device;
-import com.wydpp.gb28181.bean.ParentPlatform;
+import com.wydpp.gb28181.bean.SipDevice;
+import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
 import com.wydpp.gb28181.processor.request.impl.message.IMessageHandler;
 import com.wydpp.gb28181.processor.request.impl.message.response.ResponseMessageHandler;
@@ -34,7 +32,7 @@ public class AlarmResponseMessageHandler extends SIPRequestProcessorParent imple
     }
 
     @Override
-    public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
+    public void handForDevice(RequestEvent evt, SipDevice sipDevice, Element rootElement) {
         /*Element deviceIdElement = rootElement.element("DeviceID");
         String channelId = deviceIdElement.getText().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_ALARM + device.getDeviceId() + channelId;
@@ -50,7 +48,7 @@ public class AlarmResponseMessageHandler extends SIPRequestProcessorParent imple
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element element) {
 
     }
 }

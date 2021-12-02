@@ -44,8 +44,6 @@ public class SipLayer {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
         properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getMonitorIp());
-        properties.setProperty("gov.nist.javax.sip.STACK_LOGGER", "com.wydpp.utils.Log4l2Writer");
-        properties.setProperty("gov.nist.javax.sip.SERVER_LOGGER", "com.wydpp.utils.Log4l2Writer");
         sipStack = (SipStackImpl) sipFactory.createSipStack(properties);
         return sipStack;
     }
