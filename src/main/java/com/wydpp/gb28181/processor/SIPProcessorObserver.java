@@ -82,7 +82,6 @@ public class SIPProcessorObserver implements SipListener {
             return;
         }
         requestProcessorMap.get(method).process(requestEvent);
-
     }
 
     /**
@@ -98,23 +97,13 @@ public class SIPProcessorObserver implements SipListener {
         logger.info("收到回复,来源：{}，\n{}", via.getHost() + ":" + via.getPort(), responseEvent.getResponse().toString());
         int status = response.getStatusCode();
         if (((status >= 200) && (status < 300)) || status == 401) { // Success!
-//            ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
             if (sipRequestProcessor != null) {
                 sipRequestProcessor.process(responseEvent);
             }
-            if (responseEvent.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0) {
-                CallIdHeader callIdHeader = (CallIdHeader) responseEvent.getResponse().getHeader(CallIdHeader.NAME);
-                if (callIdHeader != null) {
-                    SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());
-                    if (subscribe != null) {
-                        SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
-                        subscribe.response(eventResult);
-                    }
-                }
-            }
+            sipSubscribe.publishOkEvent(responseEvent);
         } else if ((status >= 100) && (status < 200)) {
             // 增加其它无需回复的响应，如101、180等
         } else {
@@ -133,8 +122,6 @@ public class SIPProcessorObserver implements SipListener {
                 responseEvent.getDialog().delete();
             }
         }
-
-
     }
 
     /**

@@ -24,8 +24,6 @@ public class SipSubscribe {
 
     private Map<String, Date> timeSubscribes = new ConcurrentHashMap<>();
 
-//    @Scheduled(cron="*/5 * * * * ?")   //每五秒执行一次
-//    @Scheduled(fixedRate= 100 * 60 * 60 )
     @Scheduled(cron="0 0 * * * ?")   //每小时执行一次， 每个整点
     public void execute(){
         logger.info("[定时任务] 清理过期的订阅信息");
@@ -69,7 +67,6 @@ public class SipSubscribe {
                     this.statusCode = response.getStatusCode();
                 }
                 this.callId = ((CallIdHeader)response.getHeader(CallIdHeader.NAME)).getCallId();
-
             }else if (event instanceof TimeoutEvent) {
                 TimeoutEvent timeoutEvent = (TimeoutEvent)event;
                 this.type = "timeout";
@@ -101,8 +98,10 @@ public class SipSubscribe {
     }
 
     public void addOkSubscribe(String key, Event event) {
-        okSubscribes.put(key, event);
-        timeSubscribes.put(key, new Date());
+        if (key != null && event != null){
+            okSubscribes.put(key, event);
+            timeSubscribes.put(key, new Date());
+        }
     }
 
     public Event getErrorSubscribe(String key) {
@@ -114,11 +113,7 @@ public class SipSubscribe {
         timeSubscribes.remove(key);
     }
 
-    public Event getOkSubscribe(String key) {
-        return okSubscribes.get(key);
-    }
-
-    public void removeOkSubscribe(String key) {
+    private void removeOkSubscribe(String key) {
         okSubscribes.remove(key);
         timeSubscribes.remove(key);
     }
@@ -127,5 +122,16 @@ public class SipSubscribe {
     }
     public int getOkSubscribesSize(){
         return okSubscribes.size();
+    }
+
+    public void publishOkEvent(ResponseEvent evt){
+        Response response = evt.getResponse();
+        CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
+        String callId = callIdHeader.getCallId();
+        Event event = okSubscribes.get(callId);
+        if (event != null){
+            removeOkSubscribe(callId);
+            event.response(new EventResult(evt));
+        }
     }
 }

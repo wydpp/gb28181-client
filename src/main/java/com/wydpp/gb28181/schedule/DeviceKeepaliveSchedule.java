@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 发送心跳定时任务
+ */
 @Component
 public class DeviceKeepaliveSchedule {
 
@@ -33,8 +36,9 @@ public class DeviceKeepaliveSchedule {
             long keepaliveTime = sipDevice.getKeepaliveTime();
             long nowTime = System.currentTimeMillis();
             if (nowTime - keepaliveTime >= expires) {
-                sipCommander.keepalive(sipPlatform, sipDevice);
-                sipDevice.setKeepaliveTime(nowTime);
+                sipCommander.keepalive(sipPlatform, sipDevice,eventResult->{
+                    sipDevice.setKeepaliveTime(nowTime);
+                });
             }
         }
     }

@@ -1,8 +1,8 @@
 package com.wydpp.gb28181.commander;
 
-import com.wydpp.config.SipDeviceConfig;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
+import com.wydpp.gb28181.event.SipSubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,15 +31,18 @@ public class SIPCommander implements ISIPCommander {
     @Autowired
     private SIPRequestHeaderPlatformProvider headerProviderPlatformProvider;
 
+    @Autowired
+    private SipSubscribe sipSubscribe;
+
     @Lazy
     @Autowired
     private SipProvider udpSipProvider;
 
-    public boolean register(SipPlatform sipPlatform, SipDevice sipDevice) {
-        return register(sipPlatform, sipDevice, null, null);
+    public boolean register(SipPlatform sipPlatform, SipDevice sipDevice, SipSubscribe.Event okEvent) {
+        return register(sipPlatform, sipDevice, null, null, okEvent);
     }
 
-    public boolean register(SipPlatform sipPlatform, SipDevice sipDevice, String callId, WWWAuthenticateHeader www) {
+    public boolean register(SipPlatform sipPlatform, SipDevice sipDevice, String callId, WWWAuthenticateHeader www, SipSubscribe.Event okEvent) {
         String tm = Long.toString(System.currentTimeMillis());
         Request request = null;
         CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
@@ -51,15 +54,19 @@ public class SIPCommander implements ISIPCommander {
             }
         } else {
             try {
-                request = headerProviderPlatformProvider.createRegisterRequest(sipPlatform, sipDevice, "FromRegister" + tm, null, callId, www, callIdHeader);
+                callIdHeader.setCallId(callId);
+                request = headerProviderPlatformProvider.createRegisterRequest(sipPlatform, sipDevice, "FromRegister" + tm, null, www, callIdHeader);
             } catch (Exception e) {
                 logger.error("createRegisterRequest error!", e);
             }
         }
         if (request != null) {
-            logger.info("");
+            if (okEvent != null) {
+                sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+            }
             try {
-                sendRequest(request);
+                logger.info("要发送的注册消息:\n{}", request);
+                udpSipProvider.sendRequest(request);
                 return true;
             } catch (SipException e) {
                 logger.error("sendRequest error!", e);
@@ -69,7 +76,54 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public String keepalive(SipPlatform sipPlatform,SipDevice sipDevice) {
+    public boolean unRegister(SipPlatform sipPlatform, SipDevice sipDevice, SipSubscribe.Event event) {
+        String tm = Long.toString(System.currentTimeMillis());
+        Request request = null;
+        CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
+        try {
+            request = headerProviderPlatformProvider.createUnRegisterRequest(sipPlatform, sipDevice, 1L, "FromRegister" + tm, null, callIdHeader);
+        } catch (Exception e) {
+            logger.error("createRegisterRequest error!", e);
+        }
+        if (request != null) {
+            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), event);
+            try {
+                logger.info("要发送的注销消息:\n{}", request);
+                udpSipProvider.sendRequest(request);
+                return true;
+            } catch (SipException e) {
+                logger.error("sendRequest error!", e);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean unRegister(SipPlatform sipPlatform, SipDevice sipDevice, String callId, WWWAuthenticateHeader www, SipSubscribe.Event event){
+        String tm = Long.toString(System.currentTimeMillis());
+        Request request = null;
+        CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
+        try {
+            callIdHeader.setCallId(callId);
+            request = headerProviderPlatformProvider.createUnRegisterRequest(sipPlatform, sipDevice, "FromRegister" + tm, null, www, callIdHeader);
+        } catch (Exception e) {
+            logger.error("createRegisterRequest error!", e);
+        }
+        if (request != null) {
+            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), event);
+            try {
+                logger.info("要发送的注销消息:\n{}", request);
+                udpSipProvider.sendRequest(request);
+                return true;
+            } catch (SipException e) {
+                logger.error("sendRequest error!", e);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public String keepalive(SipPlatform sipPlatform, SipDevice sipDevice, SipSubscribe.Event okEvent) {
         String callId = null;
         try {
             StringBuffer keepaliveXml = new StringBuffer(200);
@@ -83,22 +137,20 @@ public class SIPCommander implements ISIPCommander {
             CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
             Request request = headerProviderPlatformProvider.createKeetpaliveMessageRequest(
                     sipPlatform,
+                    sipDevice,
                     keepaliveXml.toString(),
                     "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),
                     UUID.randomUUID().toString().replace("-", ""),
                     null,
                     callIdHeader);
-            sendRequest(request);
+            logger.info("要发送的心跳消息:\n{}", request);
+            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+            udpSipProvider.sendRequest(request);
             callId = callIdHeader.getCallId();
         } catch (ParseException | InvalidArgumentException | SipException e) {
-            e.printStackTrace();
+            logger.error("心跳消息发送异常!", e);
         }
         return callId;
-    }
-
-    private void sendRequest(Request request) throws SipException {
-        logger.info("要发送的sip消息:\n{}", request.toString());
-        udpSipProvider.sendRequest(request);
     }
 
 }
