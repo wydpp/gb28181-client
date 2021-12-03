@@ -1,9 +1,6 @@
 package com.wydpp.gb28181.bean;
 
 public class DeviceChannel {
-
-
-
 	/**
 	 * 通道id
 	 */

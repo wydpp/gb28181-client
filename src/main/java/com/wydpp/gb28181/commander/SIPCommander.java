@@ -1,5 +1,6 @@
 package com.wydpp.gb28181.commander;
 
+import com.wydpp.gb28181.bean.DeviceChannel;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.event.SipSubscribe;
@@ -151,6 +152,53 @@ public class SIPCommander implements ISIPCommander {
             logger.error("心跳消息发送异常!", e);
         }
         return callId;
+    }
+
+    /**
+     * 向上级回复通道信息
+     * @param channel 通道信息
+     * @param sipDevice 设备信息
+     * @return
+     */
+    @Override
+    public boolean catalogResponse(SipPlatform sipPlatform,DeviceChannel channel, SipDevice sipDevice, String sn, String fromTag, int size) {
+        try {
+            StringBuffer catalogXml = new StringBuffer(600);
+            catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            catalogXml.append("<Response>\r\n");
+            catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
+            catalogXml.append("<SN>" +sn + "</SN>\r\n");
+            catalogXml.append("<DeviceID>" + sipDevice.getDeviceId() + "</DeviceID>\r\n");
+            catalogXml.append("<SumNum>" + size + "</SumNum>\r\n");
+            catalogXml.append("<DeviceList Num=\"1\">\r\n");
+            catalogXml.append("<Item>\r\n");
+            if (channel != null) {
+                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+                catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
+                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
+                catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
+                catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+                catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");// TODO 当前不能添加分组， 所以暂时没有父节点
+                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n"); // TODO 当前不能添加分组， 所以暂时没有父节点
+                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
+                catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
+                catalogXml.append("<Info></Info>\r\n");
+            }
+            catalogXml.append("</Item>\r\n");
+            catalogXml.append("</DeviceList>\r\n");
+            catalogXml.append("</Response>\r\n");
+            // callid
+            CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
+            Request request = headerProviderPlatformProvider.createMessageRequest(sipPlatform,sipDevice, catalogXml.toString(), fromTag, callIdHeader);
+            udpSipProvider.sendRequest(request);
+        } catch (SipException | ParseException | InvalidArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
 }

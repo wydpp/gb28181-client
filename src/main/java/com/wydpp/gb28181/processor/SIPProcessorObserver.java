@@ -81,7 +81,7 @@ public class SIPProcessorObserver implements SipListener {
             logger.warn("不支持方法{}的request", method);
             return;
         }
-        requestProcessorMap.get(method).process(requestEvent);
+        sipRequestProcessor.process(requestEvent);
     }
 
     /**

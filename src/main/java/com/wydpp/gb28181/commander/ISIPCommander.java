@@ -1,5 +1,6 @@
 package com.wydpp.gb28181.commander;
 
+import com.wydpp.gb28181.bean.DeviceChannel;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.event.SipSubscribe;
@@ -18,4 +19,6 @@ public interface ISIPCommander {
     boolean unRegister(SipPlatform sipPlatform, SipDevice sipDevice, String callId, WWWAuthenticateHeader www, SipSubscribe.Event event);
 
     String keepalive(SipPlatform sipPlatform, SipDevice sipDevice, SipSubscribe.Event okEvent);
+
+    boolean catalogResponse(SipPlatform sipPlatform, DeviceChannel channel, SipDevice sipDevice, String sn, String fromTag, int size);
 }

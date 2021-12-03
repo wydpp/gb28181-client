@@ -6,6 +6,7 @@ import com.wydpp.gb28181.processor.SIPProcessorObserver;
 import com.wydpp.gb28181.processor.request.ISIPRequestProcessor;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
 import com.wydpp.utils.SipUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -34,6 +35,12 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
 
+    @Autowired
+    private SipPlatform sipPlatform;
+
+    @Autowired
+    private SipDevice sipDevice;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -48,26 +55,16 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     public void process(RequestEvent evt) {
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
-        // 查询设备是否存在
-        SipDevice sipDevice = null;
-                //storage.queryVideoDevice(deviceId);
-        // 查询上级平台是否存在
-        SipPlatform sipPlatform = null;
-                //storage.queryParentPlatByServerGBId(deviceId);
         try {
-            if (sipDevice == null && sipPlatform == null) {
-                // 不存在则回复404
+            if (!StringUtils.equals(deviceId,sipDevice.getDeviceId())){
+                logger.info("设备id错误，返回404");
                 responseAck(evt, Response.NOT_FOUND, "device id not found");
             }else {
                 Element rootElement = getRootElement(evt);
                 String name = rootElement.getName();
                 IMessageHandler messageHandler = messageHandlerMap.get(name);
                 if (messageHandler != null) {
-                    if (sipDevice != null) {
-                        messageHandler.handForDevice(evt, sipDevice, rootElement);
-                    }else { // 由于上面已经判断都为null则直接返回，所以这里device和parentPlatform必有一个不为null
-                        messageHandler.handForPlatform(evt, sipPlatform, rootElement);
-                    }
+                    messageHandler.handForDevice(evt, sipDevice, rootElement);
                 }else {
                     // 不支持的message
                     // 不存在则回复415
