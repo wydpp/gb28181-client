@@ -21,5 +21,5 @@ public interface IMessageHandler {
      * @param evt
      * @param sipPlatform
      */
-    void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element element);
+    void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, SipDevice sipDevice, Element element);
 }

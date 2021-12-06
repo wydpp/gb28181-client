@@ -24,7 +24,7 @@ public class BeanConfig {
         sipPlatform.setServerIP(sipServerConfig.getIp());
         sipPlatform.setServerPort(sipServerConfig.getPort());
         sipPlatform.setPassword(sipServerConfig.getPassword());
-        sipPlatform.setDeviceGBId(sipDeviceConfig.getId());
+        //sipPlatform.setDeviceGBId(sipDeviceConfig.getId());
         //使用UDP协议
         sipPlatform.setTransport("UDP");
         //注册有效期1个小时

@@ -48,7 +48,7 @@ public class AlarmResponseMessageHandler extends SIPRequestProcessorParent imple
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, SipDevice sipDevice, Element element) {
 
     }
 }

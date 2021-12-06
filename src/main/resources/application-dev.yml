@@ -25,12 +25,11 @@ sip-device:
     ip: 192.168.1.135
     # [可选] 28181服务监听的端口
     port: 5080
-    # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
-    # 后两位为行业编码，定义参照附录D.3
-    # 3701020049标识山东济南历下区 信息行业接入
     # [可选]
-    domain: 340200000
-    # [可选]
-    id: 34020000001320000004
+    id: 64010000001110000001
     # [可选] 默认设备认证密码
     password: admin123
+
+ffmpeg:
+    path: D:\Program Files\ffmpeg\bin\ffmpeg.exe
+    pushStreamCmd: -re -i C:\Users\wydpp\Videos\DellXPS13Review.mp4 -vcodec h264 -acodec aac -f rtp_mpegts rtp://172.31.158.195:{port}

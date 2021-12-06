@@ -103,7 +103,9 @@ public class SIPProcessorObserver implements SipListener {
             if (sipRequestProcessor != null) {
                 sipRequestProcessor.process(responseEvent);
             }
-            sipSubscribe.publishOkEvent(responseEvent);
+            if (status == 200){
+                sipSubscribe.publishOkEvent(responseEvent);
+            }
         } else if ((status >= 100) && (status < 200)) {
             // 增加其它无需回复的响应，如101、180等
         } else {

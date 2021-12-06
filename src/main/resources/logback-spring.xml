@@ -37,7 +37,7 @@
     </appender>
 
     <!-- Level: FATAL 0  ERROR 3  WARN 4  INFO 6  DEBUG 7 -->
-    <root level="INFO">
+    <root level="debug">
         <appender-ref ref="console"/>
         <appender-ref ref="logFile"/>
         <appender-ref ref="error"/>

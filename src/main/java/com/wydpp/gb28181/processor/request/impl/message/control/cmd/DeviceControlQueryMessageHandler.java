@@ -38,5 +38,6 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element rootElement) {}
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, SipDevice sipDevice, Element rootElement) {
+    }
 }

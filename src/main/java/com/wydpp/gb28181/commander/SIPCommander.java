@@ -1,6 +1,6 @@
 package com.wydpp.gb28181.commander;
 
-import com.wydpp.gb28181.bean.DeviceChannel;
+import com.wydpp.gb28181.bean.SendRtpItem;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.event.SipSubscribe;
@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -16,7 +17,10 @@ import javax.sip.SipProvider;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
+import java.io.File;
+import java.nio.file.Files;
 import java.text.ParseException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -100,7 +104,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public boolean unRegister(SipPlatform sipPlatform, SipDevice sipDevice, String callId, WWWAuthenticateHeader www, SipSubscribe.Event event){
+    public boolean unRegister(SipPlatform sipPlatform, SipDevice sipDevice, String callId, WWWAuthenticateHeader www, SipSubscribe.Event event) {
         String tm = Long.toString(System.currentTimeMillis());
         Request request = null;
         CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
@@ -144,7 +148,7 @@ public class SIPCommander implements ISIPCommander {
                     UUID.randomUUID().toString().replace("-", ""),
                     null,
                     callIdHeader);
-            logger.info("要发送的心跳消息:\n{}", request);
+            logger.info("发送心跳消息");
             sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
             udpSipProvider.sendRequest(request);
             callId = callIdHeader.getCallId();
@@ -156,49 +160,42 @@ public class SIPCommander implements ISIPCommander {
 
     /**
      * 向上级回复通道信息
-     * @param channel 通道信息
+     *
      * @param sipDevice 设备信息
      * @return
      */
     @Override
-    public boolean catalogResponse(SipPlatform sipPlatform,DeviceChannel channel, SipDevice sipDevice, String sn, String fromTag, int size) {
+    public boolean catalogResponse(SipPlatform sipPlatform, SipDevice sipDevice, String sn, String fromTag) {
         try {
-            StringBuffer catalogXml = new StringBuffer(600);
-            catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
-            catalogXml.append("<Response>\r\n");
-            catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
-            catalogXml.append("<SN>" +sn + "</SN>\r\n");
-            catalogXml.append("<DeviceID>" + sipDevice.getDeviceId() + "</DeviceID>\r\n");
-            catalogXml.append("<SumNum>" + size + "</SumNum>\r\n");
-            catalogXml.append("<DeviceList Num=\"1\">\r\n");
-            catalogXml.append("<Item>\r\n");
-            if (channel != null) {
-                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
-                catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
-                catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-                catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
-                catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
-                catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");// TODO 当前不能添加分组， 所以暂时没有父节点
-                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n"); // TODO 当前不能添加分组， 所以暂时没有父节点
-                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-                catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-                catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
-                catalogXml.append("<Info></Info>\r\n");
+            File file = ResourceUtils.getFile("classpath:device/catalog.xml");
+            List<String> catalogList = Files.readAllLines(file.toPath());
+            StringBuffer catalogXml = new StringBuffer();
+            for (String xml : catalogList) {
+                catalogXml.append(xml.replaceAll("\\$\\{SN\\}", sn).replaceAll("\\$\\{DEVICE_ID\\}", sipDevice.getDeviceId())).append("\r\n");
             }
-            catalogXml.append("</Item>\r\n");
-            catalogXml.append("</DeviceList>\r\n");
-            catalogXml.append("</Response>\r\n");
             // callid
             CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
-            Request request = headerProviderPlatformProvider.createMessageRequest(sipPlatform,sipDevice, catalogXml.toString(), fromTag, callIdHeader);
+            Request request = headerProviderPlatformProvider.createMessageRequest(sipPlatform, sipDevice, catalogXml.toString(), fromTag, callIdHeader);
+            logger.info("要发送的catalog消息:\n{}", request);
             udpSipProvider.sendRequest(request);
-        } catch (SipException | ParseException | InvalidArgumentException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
         return true;
+    }
+
+    /**
+     * 实时点播
+     * @param sipPlatform
+     * @param sipDevice
+     * @param sendRtpItem
+     * @param okEvent
+     * @return
+     */
+    @Override
+    public boolean play(SipPlatform sipPlatform, SipDevice sipDevice, SendRtpItem sendRtpItem, SipSubscribe.Event okEvent) {
+        return false;
     }
 
 }

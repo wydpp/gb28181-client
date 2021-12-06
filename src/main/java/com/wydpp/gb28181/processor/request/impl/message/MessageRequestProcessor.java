@@ -54,18 +54,18 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Override
     public void process(RequestEvent evt) {
         logger.debug("接收到消息：" + evt.getRequest());
-        String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
+        String deviceId = SipUtils.getUserIdFromToHeader(evt.getRequest());
         try {
-            if (!StringUtils.equals(deviceId,sipDevice.getDeviceId())){
+            if (!StringUtils.equals(deviceId, sipDevice.getDeviceId())) {
                 logger.info("设备id错误，返回404");
                 responseAck(evt, Response.NOT_FOUND, "device id not found");
-            }else {
+            } else {
                 Element rootElement = getRootElement(evt);
                 String name = rootElement.getName();
                 IMessageHandler messageHandler = messageHandlerMap.get(name);
                 if (messageHandler != null) {
-                    messageHandler.handForDevice(evt, sipDevice, rootElement);
-                }else {
+                    messageHandler.handForPlatform(evt, sipPlatform, sipDevice, rootElement);
+                } else {
                     // 不支持的message
                     // 不存在则回复415
                     responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");

@@ -80,11 +80,11 @@ public class SIPRequestHeaderPlatformProvider {
         viaHeader.setRPort();
         viaHeaders.add(viaHeader);
         //from
-        SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(platform.getDeviceGBId(), sipAddress);
+        SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(sipDevice.getDeviceId(), sipAddress);
         Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
         FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, fromTag);
         //to
-        SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(platform.getDeviceGBId(), sipAddress);
+        SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(sipDevice.getDeviceId(), sipAddress);
         Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
         ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, null);
         //Forwards
@@ -94,7 +94,7 @@ public class SIPRequestHeaderPlatformProvider {
         request = sipFactory.createMessageFactory().createRequest(requestLine, Request.REGISTER, callIdHeader,
                 cSeqHeader, fromHeader, toHeader, viaHeaders, maxForwards);
         Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory()
-                .createSipURI(platform.getDeviceGBId(), sipAddress));
+                .createSipURI(sipDevice.getDeviceId(), sipAddress));
         request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
         ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(sipDevice.getExpires());
         request.addHeader(expires);
@@ -114,7 +114,7 @@ public class SIPRequestHeaderPlatformProvider {
         // 参考 https://blog.csdn.net/y673533511/article/details/88388138
         // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
         String qop = www.getQop();
-        SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
+        SipURI requestURI = sipFactory.createAddressFactory().createSipURI(sipDevice.getDeviceId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
         String cNonce = null;
         String nc = "00000001";
         if (qop != null) {
@@ -126,7 +126,7 @@ public class SIPRequestHeaderPlatformProvider {
                 // TODO
             }
         }
-        String HA1 = DigestUtils.md5DigestAsHex((parentPlatform.getDeviceGBId() + ":" + realm + ":" + parentPlatform.getPassword()).getBytes());
+        String HA1 = DigestUtils.md5DigestAsHex((sipDevice.getDeviceId() + ":" + realm + ":" + parentPlatform.getPassword()).getBytes());
         String HA2 = DigestUtils.md5DigestAsHex((Request.REGISTER + ":" + requestURI.toString()).getBytes());
         StringBuffer reStr = new StringBuffer(200);
         reStr.append(HA1);
@@ -144,7 +144,7 @@ public class SIPRequestHeaderPlatformProvider {
         reStr.append(HA2);
         String RESPONSE = DigestUtils.md5DigestAsHex(reStr.toString().getBytes());
         AuthorizationHeader authorizationHeader = sipFactory.createHeaderFactory().createAuthorizationHeader(scheme);
-        authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
+        authorizationHeader.setUsername(sipDevice.getDeviceId());
         authorizationHeader.setRealm(realm);
         authorizationHeader.setNonce(nonce);
         authorizationHeader.setURI(requestURI);
@@ -180,7 +180,7 @@ public class SIPRequestHeaderPlatformProvider {
         SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
         // via
         ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-        ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(parentPlatform.getDeviceIp(), Integer.parseInt(parentPlatform.getDevicePort()),
+        ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(parentPlatform.getServerGBId(), parentPlatform.getServerPort(),
                 parentPlatform.getTransport(), null);
         viaHeader.setRPort();
         viaHeaders.add(viaHeader);

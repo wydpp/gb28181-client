@@ -4,6 +4,7 @@ import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 
 import javax.sip.header.FromHeader;
+import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
 
 /**
@@ -21,6 +22,13 @@ public class SipUtils {
 
     public static String getUserIdFromFromHeader(FromHeader fromHeader) {
         AddressImpl address = (AddressImpl)fromHeader.getAddress();
+        SipUri uri = (SipUri) address.getURI();
+        return uri.getUser();
+    }
+
+    public static String getUserIdFromToHeader(Request request) {
+        ToHeader toHeader = (ToHeader) request.getHeader(ToHeader.NAME);
+        AddressImpl address = (AddressImpl)toHeader.getAddress();
         SipUri uri = (SipUri) address.getURI();
         return uri.getUser();
     }

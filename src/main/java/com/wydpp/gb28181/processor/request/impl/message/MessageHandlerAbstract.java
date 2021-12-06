@@ -29,11 +29,11 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, SipDevice sipDevice, Element element) {
         String cmd = getText(element, "CmdType");
         IMessageHandler messageHandler = messageHandlerMap.get(cmd);
         if (messageHandler != null) {
-            messageHandler.handForPlatform(evt, sipPlatform, element);
+            messageHandler.handForPlatform(evt, sipPlatform, sipDevice, element);
         }
     }
 }

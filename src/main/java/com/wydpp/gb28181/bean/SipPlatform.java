@@ -37,15 +37,15 @@ public class SipPlatform {
      */
     private int serverPort;
 
-    /**
-     * 设备国标编号
-     */
-    private String deviceGBId;
-
-    /**
-     * 设备ip
-     */
-    private String deviceIp;
+//    /**
+//     * 设备国标编号
+//     */
+//    private String deviceGBId;
+//
+//    /**
+//     * 设备ip
+//     */
+//    private String deviceIp;
 
     /**
      * 设备端口
@@ -154,21 +154,21 @@ public class SipPlatform {
         this.serverPort = serverPort;
     }
 
-    public String getDeviceGBId() {
-        return deviceGBId;
-    }
-
-    public void setDeviceGBId(String deviceGBId) {
-        this.deviceGBId = deviceGBId;
-    }
-
-    public String getDeviceIp() {
-        return deviceIp;
-    }
-
-    public void setDeviceIp(String deviceIp) {
-        this.deviceIp = deviceIp;
-    }
+//    public String getDeviceGBId() {
+//        return deviceGBId;
+//    }
+//
+//    public void setDeviceGBId(String deviceGBId) {
+//        this.deviceGBId = deviceGBId;
+//    }
+//
+//    public String getDeviceIp() {
+//        return deviceIp;
+//    }
+//
+//    public void setDeviceIp(String deviceIp) {
+//        this.deviceIp = deviceIp;
+//    }
 
     public String getDevicePort() {
         return devicePort;
