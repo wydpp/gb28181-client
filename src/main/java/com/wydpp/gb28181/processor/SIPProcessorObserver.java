@@ -94,16 +94,20 @@ public class SIPProcessorObserver implements SipListener {
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
         ViaHeader via = (ViaHeader) response.getHeader("Via");
-        logger.info("收到回复,来源：{}，\n{}", via.getHost() + ":" + via.getPort(), responseEvent.getResponse().toString());
         int status = response.getStatusCode();
         if (((status >= 200) && (status < 300)) || status == 401) { // Success!
+            if (status != 200){
+                logger.info("收到{}回复,来源：{}，\n{}", status, via.getHost() + ":" + via.getPort(), responseEvent.getResponse().toString());
+            }else {
+                logger.info("收到{}回复,来源：{}", status, via.getHost() + ":" + via.getPort());
+            }
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
             if (sipRequestProcessor != null) {
                 sipRequestProcessor.process(responseEvent);
             }
-            if (status == 200){
+            if (status == 200) {
                 sipSubscribe.publishOkEvent(responseEvent);
             }
         } else if ((status >= 100) && (status < 200)) {
@@ -140,15 +144,18 @@ public class SIPProcessorObserver implements SipListener {
 
     @Override
     public void processIOException(IOExceptionEvent exceptionEvent) {
+        logger.info("processIOException");
     }
 
     @Override
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
+        logger.info("processTransactionTerminated");
     }
 
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
-        CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
+        logger.info("processDialogTerminated");
+        //CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
     }
 
 
