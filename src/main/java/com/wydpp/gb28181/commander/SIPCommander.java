@@ -11,12 +11,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import javax.sip.SipProvider;
+import javax.sip.*;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
+import javax.sip.message.Response;
 import java.io.File;
 import java.nio.file.Files;
 import java.text.ParseException;
@@ -183,19 +185,6 @@ public class SIPCommander implements ISIPCommander {
             return false;
         }
         return true;
-    }
-
-    /**
-     * 实时点播
-     * @param sipPlatform
-     * @param sipDevice
-     * @param sendRtpItem
-     * @param okEvent
-     * @return
-     */
-    @Override
-    public boolean play(SipPlatform sipPlatform, SipDevice sipDevice, SendRtpItem sendRtpItem, SipSubscribe.Event okEvent) {
-        return false;
     }
 
 }

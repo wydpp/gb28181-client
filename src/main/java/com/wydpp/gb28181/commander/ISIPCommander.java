@@ -7,6 +7,7 @@ import com.wydpp.gb28181.event.SipSubscribe;
 
 import javax.sip.SipException;
 import javax.sip.header.WWWAuthenticateHeader;
+import javax.sip.message.Request;
 
 public interface ISIPCommander {
 
@@ -22,5 +23,5 @@ public interface ISIPCommander {
 
     boolean catalogResponse(SipPlatform sipPlatform, SipDevice sipDevice, String sn, String fromTag);
 
-    boolean play(SipPlatform sipPlatform, SipDevice sipDevice, SendRtpItem sendRtpItem, SipSubscribe.Event okEvent);
+//    boolean playResponse(Request request,SipPlatform sipPlatform, SipDevice sipDevice, SendRtpItem sendRtpItem, SipSubscribe.Event okEvent);
 }

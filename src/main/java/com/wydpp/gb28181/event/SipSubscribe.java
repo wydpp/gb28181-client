@@ -24,14 +24,15 @@ public class SipSubscribe {
 
     private Map<String, Date> timeSubscribes = new ConcurrentHashMap<>();
 
-    @Scheduled(cron="0 0 * * * ?")   //每小时执行一次， 每个整点
-    public void execute(){
+
+    @Scheduled(cron = "0 0 * * * ?")   //每小时执行一次， 每个整点
+    public void execute() {
         logger.info("[定时任务] 清理过期的订阅信息");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.set(Calendar.HOUR, calendar.get(Calendar.HOUR) - 1);
         for (String key : timeSubscribes.keySet()) {
-            if (timeSubscribes.get(key).before(calendar.getTime())){
+            if (timeSubscribes.get(key).before(calendar.getTime())) {
                 logger.info("[定时任务] 清理过期的订阅信息： {}", key);
                 errorSubscribes.remove(key);
                 okSubscribes.remove(key);
@@ -44,7 +45,7 @@ public class SipSubscribe {
         void response(EventResult eventResult);
     }
 
-    public static class EventResult<EventObject>{
+    public static class EventResult<EventObject> {
         public int statusCode;
         public String type;
         public String msg;
@@ -58,7 +59,7 @@ public class SipSubscribe {
         public EventResult(EventObject event) {
             this.event = event;
             if (event instanceof ResponseEvent) {
-                ResponseEvent responseEvent = (ResponseEvent)event;
+                ResponseEvent responseEvent = (ResponseEvent) event;
                 Response response = responseEvent.getResponse();
                 this.dialog = responseEvent.getDialog();
                 this.type = "response";
@@ -66,28 +67,34 @@ public class SipSubscribe {
                     this.msg = response.getReasonPhrase();
                     this.statusCode = response.getStatusCode();
                 }
-                this.callId = ((CallIdHeader)response.getHeader(CallIdHeader.NAME)).getCallId();
-            }else if (event instanceof TimeoutEvent) {
-                TimeoutEvent timeoutEvent = (TimeoutEvent)event;
+                this.callId = ((CallIdHeader) response.getHeader(CallIdHeader.NAME)).getCallId();
+            } else if (event instanceof TimeoutEvent) {
+                TimeoutEvent timeoutEvent = (TimeoutEvent) event;
                 this.type = "timeout";
                 this.msg = "消息超时未回复";
                 this.statusCode = -1024;
                 this.callId = timeoutEvent.getClientTransaction().getDialog().getCallId().getCallId();
                 this.dialog = timeoutEvent.getClientTransaction().getDialog();
-            }else if (event instanceof TransactionTerminatedEvent) {
-                TransactionTerminatedEvent transactionTerminatedEvent = (TransactionTerminatedEvent)event;
+            } else if (event instanceof TransactionTerminatedEvent) {
+                TransactionTerminatedEvent transactionTerminatedEvent = (TransactionTerminatedEvent) event;
                 this.type = "transactionTerminated";
                 this.msg = "事务已结束";
                 this.statusCode = -1024;
                 this.callId = transactionTerminatedEvent.getClientTransaction().getDialog().getCallId().getCallId();
                 this.dialog = transactionTerminatedEvent.getClientTransaction().getDialog();
-            }else if (event instanceof DialogTerminatedEvent) {
-                DialogTerminatedEvent dialogTerminatedEvent = (DialogTerminatedEvent)event;
+            } else if (event instanceof DialogTerminatedEvent) {
+                DialogTerminatedEvent dialogTerminatedEvent = (DialogTerminatedEvent) event;
                 this.type = "dialogTerminated";
                 this.msg = "会话已结束";
                 this.statusCode = -1024;
                 this.callId = dialogTerminatedEvent.getDialog().getCallId().getCallId();
                 this.dialog = dialogTerminatedEvent.getDialog();
+            } else if (event instanceof RequestEvent) {
+                RequestEvent requestEvent = (RequestEvent) event;
+                this.type = "ack";
+                this.msg = "ack event";
+                this.callId = requestEvent.getDialog().getCallId().getCallId();
+                this.dialog = requestEvent.getDialog();
             }
         }
     }
@@ -98,7 +105,7 @@ public class SipSubscribe {
     }
 
     public void addOkSubscribe(String key, Event event) {
-        if (key != null && event != null){
+        if (key != null && event != null) {
             okSubscribes.put(key, event);
             timeSubscribes.put(key, new Date());
         }
@@ -117,19 +124,30 @@ public class SipSubscribe {
         okSubscribes.remove(key);
         timeSubscribes.remove(key);
     }
-    public int getErrorSubscribesSize(){
+
+    public int getErrorSubscribesSize() {
         return errorSubscribes.size();
     }
-    public int getOkSubscribesSize(){
+
+    public int getOkSubscribesSize() {
         return okSubscribes.size();
     }
 
-    public void publishOkEvent(ResponseEvent evt){
+    public void publishOkEvent(ResponseEvent evt) {
         Response response = evt.getResponse();
         CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
         String callId = callIdHeader.getCallId();
         Event event = okSubscribes.get(callId);
-        if (event != null){
+        if (event != null) {
+            removeOkSubscribe(callId);
+            event.response(new EventResult(evt));
+        }
+    }
+
+    public void publishAckEvent(RequestEvent evt) {
+        String callId = evt.getDialog().getCallId().getCallId();
+        Event event = okSubscribes.get(callId);
+        if (event != null) {
             removeOkSubscribe(callId);
             event.response(new EventResult(evt));
         }

@@ -164,6 +164,7 @@ public abstract class SIPRequestProcessorParent {
                 sipFactory.createAddressFactory().createSipURI(sipURI.getUser(), sipURI.getHost() + ":" + sipURI.getPort()
                 ));
         response.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+        logger.info("回复ack消息：/n{}",response);
         getServerTransaction(evt).sendResponse(response);
     }
 

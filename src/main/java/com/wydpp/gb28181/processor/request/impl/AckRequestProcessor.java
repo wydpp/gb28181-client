@@ -1,6 +1,7 @@
 package com.wydpp.gb28181.processor.request.impl;
 
 
+import com.wydpp.gb28181.event.SipSubscribe;
 import com.wydpp.gb28181.processor.SIPProcessorObserver;
 import com.wydpp.gb28181.processor.request.ISIPRequestProcessor;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.sip.Dialog;
+import javax.sip.DialogState;
 import javax.sip.RequestEvent;
 
 /**
@@ -24,6 +26,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
+
+    @Autowired
+    private SipSubscribe sipSubscribe;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -40,5 +45,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
     public void process(RequestEvent evt) {
         Dialog dialog = evt.getDialog();
         if (dialog == null) return;
+        if (dialog.getState() == DialogState.CONFIRMED){
+            sipSubscribe.publishAckEvent(evt);
+        }
     }
 }

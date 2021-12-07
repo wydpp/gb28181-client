@@ -161,7 +161,7 @@ public class SIPRequestHeaderPlatformProvider {
 
     public Request createUnRegisterRequest(SipPlatform sipPlatform, SipDevice sipDevice, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader) throws ParseException, PeerUnavailableException, InvalidArgumentException {
         SipDevice copyDevice = new SipDevice();
-        BeanUtils.copyProperties(sipPlatform, copyDevice);
+        BeanUtils.copyProperties(sipDevice, copyDevice);
         copyDevice.setExpires(0);
         return createRegisterRequest(sipPlatform, copyDevice, CSeq, fromTag, viaTag, callIdHeader);
     }
@@ -169,7 +169,7 @@ public class SIPRequestHeaderPlatformProvider {
     public Request createUnRegisterRequest(SipPlatform sipPlatform, SipDevice sipDevice, String fromTag, String viaTag,
                                            WWWAuthenticateHeader www, CallIdHeader callIdHeader) throws ParseException, PeerUnavailableException, InvalidArgumentException {
         SipDevice copyDevice = new SipDevice();
-        BeanUtils.copyProperties(sipPlatform, copyDevice);
+        BeanUtils.copyProperties(sipDevice, copyDevice);
         copyDevice.setExpires(0);
         return createRegisterRequest(sipPlatform, copyDevice, fromTag, viaTag, www, callIdHeader);
     }

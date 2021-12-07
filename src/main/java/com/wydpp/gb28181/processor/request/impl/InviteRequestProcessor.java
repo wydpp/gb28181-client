@@ -55,6 +55,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     @Autowired
     private FfmpegCommander ffmpegCommander;
 
+    @Autowired
+    private SipSubscribe sipSubscribe;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -74,22 +77,18 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             SipURI sipURI = (SipURI) request.getRequestURI();
             String channelId = sipURI.getUser();
             String requesterId = null;
-
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             requesterId = uri.getUser();
-
             if (requesterId == null || channelId == null) {
                 logger.info("无法从FromHeader的Address中获取到平台id，返回400");
                 responseAck(evt, Response.BAD_REQUEST); // 参数不全， 发400，请求错误
                 return;
             }
-
             // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
             logger.info("收到设备" + requesterId + "的语音广播Invite请求");
-            responseAck(evt, Response.TRYING);
-
+            //responseAck(evt, Response.TRYING);
             String contentString = new String(request.getRawContent());
             // jainSip不支持y=字段， 移除移除以解析。
             String substring = contentString;
@@ -106,30 +105,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
             //  获取支持的格式
             Vector mediaDescriptions = sdp.getMediaDescriptions(true);
-            // 查看是否支持PS 负载96
             int port = -1;
-            //boolean recvonly = false;
-            boolean mediaTransmissionTCP = false;
-            Boolean tcpActive = null;
             for (int i = 0; i < mediaDescriptions.size(); i++) {
                 MediaDescription mediaDescription = (MediaDescription) mediaDescriptions.get(i);
                 Media media = mediaDescription.getMedia();
                 Vector mediaFormats = media.getMediaFormats(false);
                 if (mediaFormats.contains("98")) {
                     port = media.getMediaPort();
-                    String protocol = media.getProtocol();
-                    // 区分TCP发流还是udp， 当前默认udp
-                    if ("TCP/RTP/AVP".equals(protocol)) {
-                        String setup = mediaDescription.getAttribute("setup");
-                        if (setup != null) {
-                            mediaTransmissionTCP = true;
-                            if ("active".equals(setup)) {
-                                tcpActive = true;
-                            } else if ("passive".equals(setup)) {
-                                tcpActive = false;
-                            }
-                        }
-                    }
                     break;
                 }
             }
@@ -146,18 +128,34 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sendRtpItem.setIp(addressStr);
             sendRtpItem.setPort(port);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-            ffmpegCommander.pushVideoStream(callIdHeader.getCallId(),addressStr,port);
-            //todo返回成功,开始推流
+            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), new SipSubscribe.Event() {
+                @Override
+                public void response(SipSubscribe.EventResult eventResult) {
+                    logger.info("开始推流");
+                    ffmpegCommander.stopAllPushStream();
+                    ffmpegCommander.pushVideoStream(eventResult.callId, sendRtpItem.getIp(), sendRtpItem.getPort());
+                }
+            });
+            StringBuffer content = new StringBuffer(200);
+            content.append("v=0\r\n");
+            content.append("o=" + channelId + " 0 0 IN IP4 " + addressStr + "\r\n");
+            content.append("s=Play\r\n");
+            content.append("c=IN IP4 " + addressStr + "\r\n");
+            content.append("t=0 0\r\n");
+            content.append("m=video " + sendRtpItem.getPort() + " RTP/AVP 96\r\n");
+            content.append("a=sendonly\r\n");
+            content.append("a=rtpmap:96 PS/90000\r\n");
+            content.append("y=" + ssrc + "\r\n");
+            content.append("f=\r\n");
+            responseAck(evt, content.toString());
         } catch (SipException | InvalidArgumentException |
                 ParseException e) {
             e.printStackTrace();
             logger.warn("sdp解析错误");
             e.printStackTrace();
-        } catch (
-                SdpParseException e) {
+        } catch (SdpParseException e) {
             e.printStackTrace();
-        } catch (
-                SdpException e) {
+        } catch (SdpException e) {
             e.printStackTrace();
         }
     }
