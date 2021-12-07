@@ -1,6 +1,8 @@
 package com.wydpp.gb28181.processor.request.impl;
 
+import com.wydpp.gb28181.commander.FfmpegCommander;
 import com.wydpp.gb28181.commander.ISIPCommander;
+import com.wydpp.gb28181.event.SipSubscribe;
 import com.wydpp.gb28181.processor.SIPProcessorObserver;
 import com.wydpp.gb28181.processor.request.ISIPRequestProcessor;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
@@ -32,6 +34,12 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
 
+    @Autowired
+    private SipSubscribe sipSubscribe;
+
+    @Autowired
+    private FfmpegCommander ffmpegCommander;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -48,6 +56,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
         try {
             responseAck(evt, Response.OK);
             Dialog dialog = evt.getDialog();
+            //如果有推流，则关闭
+            ffmpegCommander.stopPushStream(dialog.getCallId().getCallId());
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {

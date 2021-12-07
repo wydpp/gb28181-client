@@ -1,7 +1,7 @@
 server:
     port: 8081
 
-# 28181服务器的配置
+# 28181 SIP服务器的配置
 sip-server:
     # [必须修改] 本机的IP
     ip: 192.168.1.135
@@ -31,5 +31,7 @@ sip-device:
     password: admin123
 
 ffmpeg:
+    #ffmpeg执行文件路径
     path: D:\Program Files\ffmpeg\bin\ffmpeg.exe
-    pushStreamCmd: -re -i C:\Users\wydpp\Videos\DellXPS13Review.mp4 -vcodec h264 -acodec aac -f rtp_mpegts rtp://172.31.158.195:{port}
+    #模拟推送视频流的命令
+    pushStreamCmd: -re -i {filePath} -vcodec h264 -acodec aac -f rtp_mpegts rtp://{ip}:{port}

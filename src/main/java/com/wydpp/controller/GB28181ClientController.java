@@ -3,6 +3,7 @@ package com.wydpp.controller;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.commander.FfmpegCommander;
+import com.wydpp.gb28181.commander.IFfmpegCommander;
 import com.wydpp.gb28181.commander.SIPCommander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class GB28181ClientController {
     private SipDevice sipDevice;
 
     @Autowired
-    private FfmpegCommander ffmpegCommander;
+    private IFfmpegCommander ffmpegCommander;
 
     @PutMapping(path = "/register")
     public DeferredResult<String> register() {
@@ -57,7 +58,7 @@ public class GB28181ClientController {
         sipDevice.setNeedRegister(false);
         boolean sendResult = sipCommander.unRegister(sipPlatform, sipDevice, eventResult -> {
             sipDevice.setOnline(false);
-            ffmpegCommander.stopAllPushStream();
+            ffmpegCommander.closeAllStream();
             result.setResult("设备注销成功!callId=" + eventResult.callId);
         });
         if (!sendResult) {
@@ -68,7 +69,7 @@ public class GB28181ClientController {
 
     @PutMapping(path = "/closePush")
     public String closePush(@RequestParam(name = "callId",required = false)String callId) {
-        ffmpegCommander.stopPushStream(callId);
+        ffmpegCommander.closeStream(callId);
         return "停止推流成功!";
     }
 

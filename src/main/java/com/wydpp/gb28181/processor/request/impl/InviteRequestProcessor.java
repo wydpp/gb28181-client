@@ -4,6 +4,7 @@ import com.wydpp.gb28181.bean.SendRtpItem;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
 import com.wydpp.gb28181.commander.FfmpegCommander;
+import com.wydpp.gb28181.commander.IFfmpegCommander;
 import com.wydpp.gb28181.commander.SIPCommander;
 import com.wydpp.gb28181.event.SipSubscribe;
 import com.wydpp.gb28181.processor.SIPProcessorObserver;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -26,6 +28,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.Vector;
 
@@ -53,7 +56,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private SipPlatform sipPlatform;
 
     @Autowired
-    private FfmpegCommander ffmpegCommander;
+    private IFfmpegCommander ffmpegCommander;
 
     @Autowired
     private SipSubscribe sipSubscribe;
@@ -62,6 +65,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
         sipProcessorObserver.addRequestProcessor(method, this);
+    }
+
+    private static String VIDEO_FILE;
+
+    static {
+        try {
+            VIDEO_FILE = ResourceUtils.getFile("classpath:device/videofile.h264").getAbsolutePath();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -86,8 +99,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 responseAck(evt, Response.BAD_REQUEST); // 参数不全， 发400，请求错误
                 return;
             }
-            // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
-            logger.info("收到设备" + requesterId + "的语音广播Invite请求");
+            logger.info("收到平台" + requesterId + "的实时视频Invite请求");
             //responseAck(evt, Response.TRYING);
             String contentString = new String(request.getRawContent());
             // jainSip不支持y=字段， 移除移除以解析。
@@ -117,7 +129,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
             if (port == -1) {
                 logger.info("不支持的媒体格式，返回415");
-                // 回复不支持的格式
                 responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
                 return;
             }
@@ -128,13 +139,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sendRtpItem.setIp(addressStr);
             sendRtpItem.setPort(port);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), new SipSubscribe.Event() {
-                @Override
-                public void response(SipSubscribe.EventResult eventResult) {
-                    logger.info("开始推流");
-                    ffmpegCommander.stopAllPushStream();
-                    ffmpegCommander.pushVideoStream(eventResult.callId, sendRtpItem.getIp(), sendRtpItem.getPort());
-                }
+            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
+                logger.info("开始推流");
+                ffmpegCommander.closeAllStream();
+                ffmpegCommander.pushStream(eventResult.callId, VIDEO_FILE, sendRtpItem.getIp(), sendRtpItem.getPort());
             });
             StringBuffer content = new StringBuffer(200);
             content.append("v=0\r\n");
@@ -150,7 +158,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             responseAck(evt, content.toString());
         } catch (SipException | InvalidArgumentException |
                 ParseException e) {
-            e.printStackTrace();
             logger.warn("sdp解析错误");
             e.printStackTrace();
         } catch (SdpParseException e) {

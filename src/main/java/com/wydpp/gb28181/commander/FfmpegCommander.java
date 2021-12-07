@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class FfmpegCommander {
+public class FfmpegCommander implements IFfmpegCommander {
 
     private final Logger logger = LoggerFactory.getLogger(FfmpegCommander.class);
 
@@ -25,10 +25,10 @@ public class FfmpegCommander {
 
     private static final Map<Integer, String> portCallIdMap = new ConcurrentHashMap<>();
 
-    public String pushVideoStream(String callId, String ip, int port) {
+    public String pushStream(String callId, String filePath, String ip, int port) {
         String command = systemConfig.getFfmpegPath() + " " +
-                systemConfig.getFfmpegPushStreamCmd().replace("{ip}", ip).replace("{port}", port + "");
-        logger.info("callId={},推流命令={}", callId, command);
+                systemConfig.getFfmpegPushStreamCmd().replace("{filePath}", filePath).replace("{ip}", ip).replace("{port}", port + "");
+        logger.info("callId={},\r\n推流命令={}", callId, command);
         Runtime runtime = Runtime.getRuntime();
         try {
             Process process = runtime.exec(command);
@@ -52,7 +52,7 @@ public class FfmpegCommander {
                 int code = 0;
                 try {
                     code = process.waitFor();
-                    System.out.println("code=" + code);
+                    logger.info("推流已结束,callId={}", callId);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -65,15 +65,19 @@ public class FfmpegCommander {
         return "";
     }
 
-    public void stopPushStream(String callId) {
-        if (StringUtils.isEmpty(callId)){
-            stopAllPushStream();
-        }else {
+    public void closeStream(String callId) {
+        logger.info("关闭推流:{}", callId);
+        if (StringUtils.isEmpty(callId)) {
+            closeAllStream();
+        } else if (portCallIdMap.containsKey(callId)) {
             processMap.get(callId).destroy();
+        }else {
+            logger.info("没有推流要关闭!");
         }
     }
 
-    public void stopAllPushStream() {
+    public void closeAllStream() {
+        logger.info("关闭所有推流");
         processMap.entrySet().stream().forEach(entry -> {
             entry.getValue().destroy();
         });
