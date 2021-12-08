@@ -23,35 +23,17 @@ public class FfmpegCommander implements IFfmpegCommander {
 
     private static final Map<String, Process> processMap = new ConcurrentHashMap<>();
 
-    private static final Map<Integer, String> portCallIdMap = new ConcurrentHashMap<>();
-
     public String pushStream(String callId, String filePath, String ip, int port) {
         String command = systemConfig.getFfmpegPath() + " " +
                 systemConfig.getFfmpegPushStreamCmd().replace("{filePath}", filePath).replace("{ip}", ip).replace("{port}", port + "");
         logger.info("callId={},\r\n推流命令={}", callId, command);
         Runtime runtime = Runtime.getRuntime();
         try {
-            //需要查看命令执行日志可以放开
-//            InputStream errorInputStream = process.getErrorStream();
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(errorInputStream));
-//            StringBuffer errorStr = new StringBuffer();
-//            String str;
-//            int times = 0;
-//            while ((str = reader.readLine()) != null) {
-//                times++;
-//                if (times >= 400) {
-//                    break;
-//                }
-//                errorStr.append(str);
-//                System.out.println(str);
-//            }
-//            System.out.println(errorStr);
             new Thread(() -> {
                 int code = 0;
                 try {
                     Process process = runtime.exec(command);
                     processMap.put(callId, process);
-                    portCallIdMap.put(port, callId);
                     InputStream errorInputStream = process.getErrorStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(errorInputStream));
                     StringBuffer errorStr = new StringBuffer();
@@ -78,7 +60,7 @@ public class FfmpegCommander implements IFfmpegCommander {
         logger.info("关闭推流:{}", callId);
         if (StringUtils.isEmpty(callId)) {
             closeAllStream();
-        } else if (portCallIdMap.containsKey(callId)) {
+        } else if (processMap.containsKey(callId)) {
             processMap.get(callId).destroy();
         } else {
             logger.info("没有推流要关闭!");
