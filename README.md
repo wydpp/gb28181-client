@@ -14,6 +14,8 @@ gb28181协议客户端模拟系统
 
 3.设备播放推流功能（使用ffmpeg读取本地视频文件，推送到zml服务）；
 
+本项目gitee地址：https://gitee.com/wydpp/gb28181-client
+
 wvp-GB28181-pro项目github地址：https://github.com/648540858/wvp-GB28181-pro
 
 ZLMediaKit流媒体服务器地址：https://github.com/ZLMediaKit/ZLMediaKit
