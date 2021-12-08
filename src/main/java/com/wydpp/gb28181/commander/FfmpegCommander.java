@@ -31,30 +31,39 @@ public class FfmpegCommander implements IFfmpegCommander {
         logger.info("callId={},\r\n推流命令={}", callId, command);
         Runtime runtime = Runtime.getRuntime();
         try {
-            Process process = runtime.exec(command);
-            processMap.put(callId, process);
-            portCallIdMap.put(port, callId);
-            InputStream errorInputStream = process.getErrorStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(errorInputStream));
-            StringBuffer errorStr = new StringBuffer();
-            String str;
-            int times = 0;
-            while ((str = reader.readLine()) != null) {
-                times++;
-                if (times >= 400) {
-                    break;
-                }
-                errorStr.append(str);
-                System.out.println(str);
-            }
-            System.out.println(errorStr);
+            //需要查看命令执行日志可以放开
+//            InputStream errorInputStream = process.getErrorStream();
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(errorInputStream));
+//            StringBuffer errorStr = new StringBuffer();
+//            String str;
+//            int times = 0;
+//            while ((str = reader.readLine()) != null) {
+//                times++;
+//                if (times >= 400) {
+//                    break;
+//                }
+//                errorStr.append(str);
+//                System.out.println(str);
+//            }
+//            System.out.println(errorStr);
             new Thread(() -> {
                 int code = 0;
                 try {
+                    Process process = runtime.exec(command);
+                    processMap.put(callId, process);
+                    portCallIdMap.put(port, callId);
+                    InputStream errorInputStream = process.getErrorStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errorInputStream));
+                    StringBuffer errorStr = new StringBuffer();
+                    String str;
+                    while ((str = reader.readLine()) != null) {
+                        errorStr.append(str);
+                        logger.debug(str);
+                    }
                     code = process.waitFor();
                     logger.info("推流已结束,callId={}", callId);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    logger.error("ffmpeg推流异常!", e);
                 }
                 System.out.println(code);
             }).start();
@@ -71,7 +80,7 @@ public class FfmpegCommander implements IFfmpegCommander {
             closeAllStream();
         } else if (portCallIdMap.containsKey(callId)) {
             processMap.get(callId).destroy();
-        }else {
+        } else {
             logger.info("没有推流要关闭!");
         }
     }
