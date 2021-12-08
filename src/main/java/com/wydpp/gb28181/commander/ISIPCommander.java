@@ -23,5 +23,6 @@ public interface ISIPCommander {
 
     boolean catalogResponse(SipPlatform sipPlatform, SipDevice sipDevice, String sn, String fromTag);
 
-//    boolean playResponse(Request request,SipPlatform sipPlatform, SipDevice sipDevice, SendRtpItem sendRtpItem, SipSubscribe.Event okEvent);
+    boolean deviceInfoResponse(SipPlatform sipPlatform, SipDevice sipDevice, String sn, String fromTag);
+
 }

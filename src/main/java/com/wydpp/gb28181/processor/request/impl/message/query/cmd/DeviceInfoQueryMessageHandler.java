@@ -2,6 +2,7 @@ package com.wydpp.gb28181.processor.request.impl.message.query.cmd;
 
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
+import com.wydpp.gb28181.commander.ISIPCommander;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
 import com.wydpp.gb28181.processor.request.impl.message.IMessageHandler;
 import com.wydpp.gb28181.processor.request.impl.message.query.QueryMessageHandler;
@@ -28,6 +29,9 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private QueryMessageHandler queryMessageHandler;
 
+    @Autowired
+    private ISIPCommander sipCommander;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         queryMessageHandler.addHandler(cmdType, this);
@@ -41,18 +45,15 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     @Override
     public void handForPlatform(RequestEvent evt, SipPlatform sipPlatform, SipDevice sipDevice, Element rootElement) {
         logger.info("接收到DeviceInfo查询消息");
-        FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
             // 回复200 OK
             responseAck(evt, Response.OK);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        String sn = rootElement.element("SN").getText();
-        //cmderFroPlatform.deviceInfoResponse(parentPlatform, sn, fromHeader.getTag());
+        FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
+        Element snElement = rootElement.element("SN");
+        String sn = snElement.getText();
+        sipCommander.deviceInfoResponse(sipPlatform, sipDevice, sn, fromHeader.getTag());
     }
 }

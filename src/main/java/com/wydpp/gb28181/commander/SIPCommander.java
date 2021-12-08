@@ -161,7 +161,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     /**
-     * 向上级回复通道信息
+     * 向上级回复目录信息
      *
      * @param sipDevice 设备信息
      * @return
@@ -179,6 +179,32 @@ public class SIPCommander implements ISIPCommander {
             CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
             Request request = headerProviderPlatformProvider.createMessageRequest(sipPlatform, sipDevice, catalogXml.toString(), fromTag, callIdHeader);
             logger.info("要发送的catalog消息:\n{}", request);
+            udpSipProvider.sendRequest(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 向上级回复设备信息
+     *
+     * @param sipDevice 设备信息
+     * @return
+     */
+    @Override
+    public boolean deviceInfoResponse(SipPlatform sipPlatform, SipDevice sipDevice, String sn, String fromTag) {
+        try {
+            File file = ResourceUtils.getFile("classpath:device/deviceInfo.xml");
+            List<String> catalogList = Files.readAllLines(file.toPath());
+            StringBuffer catalogXml = new StringBuffer();
+            for (String xml : catalogList) {
+                catalogXml.append(xml.replaceAll("\\$\\{SN\\}", sn).replaceAll("\\$\\{DEVICE_ID\\}", sipDevice.getDeviceId())).append("\r\n");
+            }
+            CallIdHeader callIdHeader = udpSipProvider.getNewCallId();
+            Request request = headerProviderPlatformProvider.createMessageRequest(sipPlatform, sipDevice, catalogXml.toString(), fromTag, callIdHeader);
+            logger.info("要发送的deviceInfo消息:\n{}", request);
             udpSipProvider.sendRequest(request);
         } catch (Exception e) {
             e.printStackTrace();
