@@ -1,6 +1,6 @@
 package com.wydpp.gb28181.processor.request.impl;
 
-import com.wydpp.gb28181.commander.FfmpegCommander;
+import com.wydpp.gb28181.commander.IFfmpegCommander;
 import com.wydpp.gb28181.commander.ISIPCommander;
 import com.wydpp.gb28181.event.SipSubscribe;
 import com.wydpp.gb28181.processor.SIPProcessorObserver;
@@ -38,7 +38,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
     private SipSubscribe sipSubscribe;
 
     @Autowired
-    private FfmpegCommander ffmpegCommander;
+    private IFfmpegCommander ffmpegCommander;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -57,7 +57,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
             responseAck(evt, Response.OK);
             Dialog dialog = evt.getDialog();
             //如果有推流，则关闭
-            ffmpegCommander.stopPushStream(dialog.getCallId().getCallId());
+            ffmpegCommander.closeStream(dialog.getCallId().getCallId());
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {
