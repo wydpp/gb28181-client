@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<Response>
+    <CmdType>RecordInfo</CmdType>
+    <SN>${SN}</SN>
+    <DeviceID>${DEVICE_ID}</DeviceID>
+    <Name>Camera1</Name>
+    <SumNum>1</SumNum>
+    <RecordList>
+        <Item>
+            <DeviceID>${DEVICE_ID}</DeviceID>
+            <Name>Camera1</Name>
+            <FilePath>20211211_1001</FilePath>
+            <Address>Address1</Address>
+            <StartTime>${START_TIME}</StartTime>
+            <EndTime>${END_TIME}</EndTime>
+            <Secrecy>0</Secrecy>
+            <Type>time</Type>
+            <RecorderID>20211211_1001</RecorderID>
+        </Item>
+    </RecordList>
+</Response>

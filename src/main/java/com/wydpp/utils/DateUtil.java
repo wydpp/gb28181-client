@@ -2,6 +2,7 @@ package com.wydpp.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.Date;
 import java.util.Locale;
 
@@ -39,7 +40,22 @@ public class DateUtil {
         }
         return "";
     }
-	
+
+    public static LocalDateTime toLocalDateTime(String timeStr){
+        SimpleDateFormat oldsdf = new SimpleDateFormat(yyyy_MM_dd_T_HH_mm_ss_SSSXXX, Locale.getDefault());
+        Date date = null;
+        try {
+            date = oldsdf.parse(timeStr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    public static boolean isToday(LocalDateTime localDateTime){
+        return localDateTime != null && localDateTime.toLocalDate().equals(LocalDate.now(ZoneId.systemDefault()));
+    }
+
 	public static long yyyy_MM_dd_HH_mm_ssToTimestamp(String formatTime) {
 		SimpleDateFormat format=new SimpleDateFormat(yyyy_MM_dd_HH_mm_ss);
 		//设置要读取的时间字符串格式

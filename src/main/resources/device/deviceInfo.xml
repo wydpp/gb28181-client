@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <Response>
     <CmdType>DeviceInfo</CmdType>
-    <SN>{SN}</SN>
+    <SN>${SN}</SN>
     <DeviceName>gb28181-client</DeviceName>
-    <DeviceID>{DEVICE_ID}</DeviceID>
+    <DeviceID>${DEVICE_ID}</DeviceID>
     <Result>OK</Result>
     <!-- 设备生产商 -->
     <Manufacturer>海康威视</Manufacturer>
