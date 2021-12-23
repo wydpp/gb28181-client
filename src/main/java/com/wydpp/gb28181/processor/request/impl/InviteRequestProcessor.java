@@ -3,15 +3,17 @@ package com.wydpp.gb28181.processor.request.impl;
 import com.wydpp.gb28181.bean.SendRtpItem;
 import com.wydpp.gb28181.bean.SipDevice;
 import com.wydpp.gb28181.bean.SipPlatform;
-import com.wydpp.gb28181.commander.FfmpegCommander;
 import com.wydpp.gb28181.commander.IFfmpegCommander;
 import com.wydpp.gb28181.commander.SIPCommander;
 import com.wydpp.gb28181.event.SipSubscribe;
 import com.wydpp.gb28181.processor.SIPProcessorObserver;
 import com.wydpp.gb28181.processor.request.ISIPRequestProcessor;
 import com.wydpp.gb28181.processor.request.SIPRequestProcessorParent;
+import gov.nist.javax.sdp.TimeDescriptionImpl;
+import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -30,7 +32,9 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * SIP命令类型： INVITE请求
@@ -69,9 +73,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     private static String VIDEO_FILE;
 
+    private static String RECORD_VIDEO_FILE;
+
     static {
         try {
             VIDEO_FILE = ResourceUtils.getFile("classpath:device/videofile.h264").getAbsolutePath();
+            RECORD_VIDEO_FILE = ResourceUtils.getFile("classpath:device/record.h264").getAbsolutePath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -132,6 +139,22 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
                 return;
             }
+            final AtomicReference<String> filePath = new AtomicReference<>(VIDEO_FILE);
+            String s = sdp.getSessionName().getValue();
+            //回放或下载请求
+            if (StringUtils.equals(s, "Playback") || StringUtils.equals(s,"Download")) {
+                filePath.set(RECORD_VIDEO_FILE);
+                TimeDescriptionImpl timeDescription = (TimeDescriptionImpl) (sdp.getTimeDescriptions(true).get(0));
+                TimeField timeField = (TimeField) (timeDescription.getTime());
+                Date start = new Date(timeField.getStartTime() * 1000);
+                Date end = new Date(timeField.getStopTime() * 1000);
+                Date now = new Date();
+                if (start.after(now) || end.before(now)) {
+                    logger.info("时间t不正确");
+                    responseAck(evt, Response.BAD_REQUEST);
+                    return;
+                }
+            }
             String username = sdp.getOrigin().getUsername();
             String addressStr = sdp.getOrigin().getAddress();
             logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", username, addressStr, port, ssrc);
@@ -142,12 +165,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
                 logger.info("开始推流");
                 ffmpegCommander.closeAllStream();
-                ffmpegCommander.pushStream(eventResult.callId, VIDEO_FILE, sendRtpItem.getIp(), sendRtpItem.getPort());
+                ffmpegCommander.pushStream(eventResult.callId, filePath.get(), sendRtpItem.getIp(), sendRtpItem.getPort());
             });
             StringBuffer content = new StringBuffer(200);
             content.append("v=0\r\n");
             content.append("o=" + channelId + " 0 0 IN IP4 " + addressStr + "\r\n");
-            content.append("s=Play\r\n");
+            content.append("s=" + sipDevice.getName() + "\r\n");
             content.append("c=IN IP4 " + addressStr + "\r\n");
             content.append("t=0 0\r\n");
             content.append("m=video " + sendRtpItem.getPort() + " RTP/AVP 96\r\n");

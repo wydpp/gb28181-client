@@ -14,6 +14,10 @@ gb28181协议客户端模拟系统
 
 3.设备播放推流功能（使用ffmpeg读取本地视频文件，推送到zml服务）；
 
+4.设备音视频文件查询指令；
+
+5.设备历史视频回放指令；
+
 ### 运行方式：
 
 clone项目到本地，idea打开，修改application-dev.yml,最后启动GB28181ClientApplication
